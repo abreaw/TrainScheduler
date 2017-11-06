@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Train Arrival Schedules</title>
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="assets/css/styles.css">
+</head>
+
+<body>
+  <div id="container">
+
+      <div class="page-header">
+        
+        <div class="jumbotron page-header heading-styles">
+          <h1>Trains, Trains and more Trains!</h1>
+          <h2>Where are you headed?<h2>
+        </div>
+      </div>
+
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          Train Arrivals
+        </div>
+
+        <div class="panel-body">
+          <table class="table" id="train-list">
+            <tr>
+              <th>Train Name</th>
+              <th>Destination</th>
+              <th>Frequency (min)</th>
+              <th>Next Arrival</th>
+              <th>Minutes Away</th>
+            </tr>
+
+            <tr>
+              <td>Suncoast Express</td>
+              <td>Sunnyvale, CA</td>
+              <td>34</td>
+              <td>03:30 PM</td>
+              <td>20</td>
+            </tr>
+          </table>
+      </div>
+    </div>
+
+    <br>
+    
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        Add New Train Details
+      </div>
+      
+      <div class="panel-body">
+        <form id="form">
+          <div class="form-group">
+            <!-- Label for input field -->
+            <label for="name-input">Train Name </label>
+            <!-- Input field for name -->
+            <input type="text" name="name-input" id="name-input" class="form-control">
+            <!-- Label for input field -->
+            <label for="destination-input">Destination </label>
+            <!-- Input field for name -->
+            <input type="text" name="destination-input" id="destination-input" class="form-control">
+            <!-- Label for input field -->
+            <label for="first-train-input">First Train Time (HH:mm - military time)</label>
+            <!-- Input field for name -->
+            <input type="text" name="first-train-input" id="first-train-input" class="form-control">
+            <!-- Input field for name -->
+            <label for="frequency-input">Frequency </label>
+            <!-- Input field for name -->
+            <input type="text" name="frequency-input" id="frequency-input" class="form-control">
+
+            <!-- button to submit the input for a new button -->
+            <button type="submit" class="btn button-submit" id="submit-btn">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+  <!-- Javascript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/4.6.1/firebase.js"></script>
+  <script src="assets/js/trainapp.js"></script>
+</body>
+
+</html>
