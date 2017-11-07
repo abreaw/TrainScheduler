@@ -20,6 +20,9 @@ firebase.initializeApp(config);
 // Create a firebase database instance to work with in this app
 var database = firebase.database();
 
+// var to hold page load true or false
+var initialized = false;
+
 
 // ---------------------------------------------------------------------------------------------------------------
 // On "Add" button click process
@@ -66,6 +69,16 @@ function createTableRow(name, dest, frequency, nextTrain, minsAway) {
 	`;
 }
 
+// ---------------------------------------------------------------------------------------------------------------
+// Calculate Next Train Time
+// arguments: frequency
+// ---------------------------------------------------------------------------------------------------------------
+function calculateNextTrainTime() {
+
+	
+
+}
+
 // // calculate months worked
 // function calculateMonthsWorked(start) {
 // 	// initialize momentjs date with firebase utc timestamp
@@ -77,25 +90,85 @@ function createTableRow(name, dest, frequency, nextTrain, minsAway) {
 
 
 // ---------------------------------------------------------------------------------------------------------------
-// Populate Table on page load
+// Populate Table on page load and when a new train is added to the firebase database
 // ---------------------------------------------------------------------------------------------------------------
 database.ref('trains').orderByChild('dateAdded').once('value', function(data) {
 	
 	console.log('ran the once')
 
-	let newRow = '';
+	// let newRow = '';
+	var newRow = '';
 
+	console.log(data.val());
 	// get rows from firebase row entries
-	var rows = Object.values(data.val())
+	var rows = Object.values(data.val());
 
-	// iterate over row entries
-	for (var row of rows) {
+	console.log(rows);
 
-		// deconstruct row properties
-		var name = row.name;
-		var destination = row.destination;
-		var firstTrain = row.firstTrain;
-		var frequency = row.frequency;
+	
+	if (!initialized) {
+		// iterate over row entries
+		for (var row of rows) {
+
+			console.log("for loop - ", row);
+
+			// deconstruct row properties
+			var name = row.name;
+			var destination = row.destination;
+			var firstTrain = row.firstTrain;
+			var frequency = row.frequency;
+
+			console.log(name + ", " + destination + ", " + firstTrain + ", " + frequency);
+
+			// calculate next arrival
+			var nextTrain = '3:45 PM'; //new Date();
+			// var todayDate = today.getDate();
+			// var monthsWorked = 10;
+
+			// calculate minsAway
+			var minsAway = '30'; // monthsWorked * monthlyRate;
+			
+			// create row and append to newRow var
+			newRow += createTableRow(
+				name,
+				destination,
+				frequency,
+				nextTrain,
+				minsAway
+			);
+
+			console.log(newRow);
+
+		}
+
+		// add newRow to train list table
+		$('#train-list').append(newRow);
+	} else {
+
+
+	}
+
+	initialized = true;
+
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// Populate new table rows on new train added
+// ---------------------------------------------------------------------------------------------------------------
+database.ref('trains').orderByChild('dateAdded').on('child_added', function(data) {
+	
+	console.log("ran the child_added function");
+
+	// add new row if page has been initialezed already
+	if (initialized) {
+
+		// get new train data from firebase database
+		var name = data.val().name;
+		var destination = data.val().destination;
+		var firstTrain = data.val().firstTrain;
+		var frequency = data.val().frequency;
+
+		console.log("on child_added function call", name, destination, firstTrain, frequency);
 
 		// calculate next arrival
 		var nextTrain = '3:45 PM'; //new Date();
@@ -106,54 +179,19 @@ database.ref('trains').orderByChild('dateAdded').once('value', function(data) {
 		var minsAway = '30'; // monthsWorked * monthlyRate;
 		
 		// create row and append to newRow var
-		newRow += createTableRow(
+		var newRow = createTableRow(
 			name,
 			destination,
 			frequency,
 			nextTrain,
 			minsAway
 		)
+
+		// push new row to train list table
+		$('#train-list').append(newRow)
+	} else {
+
+		// do not reload info already on page
+		return;
 	}
-
-	// add newRow to table
-	$('#table').append(newRow)
-
-});
-
-// ---------------------------------------------------------------------------------------------------------------
-// Populate new table rows on new train added
-// ---------------------------------------------------------------------------------------------------------------
-database.ref('trains').orderByChild('dateAdded').limitToLast(1).on('child_added', function(data) {
-	
-	// get table entry array
-	var rows = Object.values(data.val())
-	
-	// get first and only entry in rows
-	var row = rows[0]
-	
-	// deconstruct row properties
-	var name = row.name;
-	var destination = row.destination;
-	var firstTrain = row.firstTrain;
-	var frequency = row.frequency;
-
-	// calculate next arrival
-	var nextTrain = '3:45 PM'; //new Date();
-	// var todayDate = today.getDate();
-	// var monthsWorked = 10;
-
-	// calculate minsAway
-	var minsAway = '30'; // monthsWorked * monthlyRate;
-	
-	// create row and append to newRow var
-	newRow += createTableRow(
-		name,
-		destination,
-		frequency,
-		nextTrain,
-		minsAway
-	)
-	
-	// push new row to table
-	$('#table').append(newRow)
 })
