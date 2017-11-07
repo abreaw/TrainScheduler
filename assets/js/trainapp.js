@@ -23,9 +23,10 @@ var database = firebase.database();
 // var to hold page load true or false
 var initialized = false;
 
+// dont need these ... using the first train time to calculate instead
 // Train Stations start & end times
-var startTime = "04:00";
-var endTime = "00:30";
+// var startTime = moment("04:00", "HH:mm");
+// var endTime = moment("00:30", "HH:mm");
 
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -65,6 +66,8 @@ $("#form").submit(function(e) {
 // returns: html setup of the new table row with the table data passed in the arugments section
 // ---------------------------------------------------------------------------------------------------------------
 function createTableRow(name, dest, frequency, nextTrain, minsAway) {
+
+	// use ` instead of ' or " to be able to add the variable names into the string and it interpret them for the values passed in
 	return `
 		<tr>
 			<td>${name}</td>
@@ -77,26 +80,72 @@ function createTableRow(name, dest, frequency, nextTrain, minsAway) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// Calculate Next Train Time
-// arguments: frequency train runs, 
-// returns: next train time (time format HH:mm a)
+// Calculate Minutes Away from next train time
+// arguments: when first train starts, frequency train runs
+// returns: # of minutes until the next train
 // ---------------------------------------------------------------------------------------------------------------
-function calculateNextTrainTime(freq) {
+function calculateMinsAway(start, freq) {
 
-	var currentTime = moment();
+	var currentTime = moment(); // .format("HH:mm"); // military time for calculations
+	var firstTime = moment(start, "HH:mm");
+	var nextTime;
+	var trainTimes = [];
+	// var iterations = parseInt(moment(currentTime).diff(start)) / parseInt(freq);
 
-	console.log(currentTime);
+	console.log("current time = ", currentTime);
+	console.log("start time = ", firstTime);
+	console.log(nextTime);
+	// console.log(iterations);
 
+	// while ()
+
+	// console.log(moment(currentTime).diff(start, mins));
+
+	if (firstTime.isBefore(currentTime)) {
+
+		// calculates how many mins between now and the start time for the train
+		var minsDiff = currentTime.diff(firstTime, 'minutes');
+	} else if (firstTime.isAfter(currentTime)) {
+
+		// calculates how many mins between start time and now for the train
+		var minsDiff = firstTime.diff(currentTime, 'minutes');
+
+	} else if (firstTime.isSame(currentTime)) {
+
+		return 0;
+	}
+	
+	// calculates how many trains will run between now and start time
+	var numTrains = minsDiff / freq;
+	
+	// calculates how many mins until the next train??
+	var currTrainMinsAway = minsDiff % freq;  // returns the remainder after mins difference is divided by the frequency
+
+	console.log(minsDiff);
+	console.log(freq);
+	console.log(numTrains);
+	console.log("mins away", currTrainMinsAway);
+
+	return currTrainMinsAway;
 }
 
-// // calculate months worked
-// function calculateMonthsWorked(start) {
-// 	// initialize momentjs date with firebase utc timestamp
-// 	var startDate = moment(start);
-// 	// initialize momentjs now date
-// 	var todaysDate = moment();
-// 	return todaysDate.diff(startDate, 'months', true);
-// }
+
+// ---------------------------------------------------------------------------------------------------------------
+// Calculate Time the next train will arrive
+// arguments: mins away from next train time, 
+// returns: next train time (time format HH:mm a)
+// ---------------------------------------------------------------------------------------------------------------
+function calculateNextTrainTime(mins) {
+
+	var timeArrives = moment().add(mins, 'minutes');
+	console.log("next train time", timeArrives);
+
+	console.log(moment(timeArrives).format("hh:mm A"));
+
+	var timeArrivesFormatted = moment(timeArrives).format("hh:mm A");
+
+	return timeArrivesFormatted;
+}
 
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -130,14 +179,17 @@ database.ref('trains').orderByChild('dateAdded').once('value', function(data) {
 
 			console.log(name + ", " + destination + ", " + firstTrain + ", " + frequency);
 
+			// calculate minsAway
+			var minsAway = calculateMinsAway(firstTrain, frequency); // monthsWorked * monthlyRate;
+
+			console.log("minsAway = ", minsAway);
+			
 			// calculate next arrival
-			var nextTrain = '3:45 PM'; //new Date();
-			nextTrain = calculateNextTrainTime(frequency);
+			// var nextTrain = '3:45 PM'; //new Date();
+			var nextTrain = calculateNextTrainTime(minsAway);
 			// var todayDate = today.getDate();
 			// var monthsWorked = 10;
 
-			// calculate minsAway
-			var minsAway = '30'; // monthsWorked * monthlyRate;
 			
 			// create row and append to newRow var
 			newRow += createTableRow(
