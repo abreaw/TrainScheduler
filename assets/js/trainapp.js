@@ -23,6 +23,10 @@ var database = firebase.database();
 // var to hold page load true or false
 var initialized = false;
 
+// Train Stations start & end times
+var startTime = "04:00";
+var endTime = "00:30";
+
 
 // ---------------------------------------------------------------------------------------------------------------
 // On "Add" button click process
@@ -56,6 +60,9 @@ $("#form").submit(function(e) {
 
 // ---------------------------------------------------------------------------------------------------------------
 // Create & Format table row data
+// arguments: train name, train destination, how often the train comes, when the next train is due, how many
+//		minutes away the train is from now
+// returns: html setup of the new table row with the table data passed in the arugments section
 // ---------------------------------------------------------------------------------------------------------------
 function createTableRow(name, dest, frequency, nextTrain, minsAway) {
 	return `
@@ -71,11 +78,14 @@ function createTableRow(name, dest, frequency, nextTrain, minsAway) {
 
 // ---------------------------------------------------------------------------------------------------------------
 // Calculate Next Train Time
-// arguments: frequency
+// arguments: frequency train runs, 
+// returns: next train time (time format HH:mm a)
 // ---------------------------------------------------------------------------------------------------------------
-function calculateNextTrainTime() {
+function calculateNextTrainTime(freq) {
 
-	
+	var currentTime = moment();
+
+	console.log(currentTime);
 
 }
 
@@ -122,6 +132,7 @@ database.ref('trains').orderByChild('dateAdded').once('value', function(data) {
 
 			// calculate next arrival
 			var nextTrain = '3:45 PM'; //new Date();
+			nextTrain = calculateNextTrainTime(frequency);
 			// var todayDate = today.getDate();
 			// var monthsWorked = 10;
 
