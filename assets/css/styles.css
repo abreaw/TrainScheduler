@@ -1,0 +1,40 @@
+
+body {
+
+	margin: 25px 25px;
+}
+
+h2 {
+
+	color: #b8d7f2;/*#a3d0f7;*/
+}
+
+input {
+
+	margin: 5px 0px 10px 0px;
+}
+
+label {
+
+	margin: 10px 0px 0px 0px;
+}
+
+.table-striped>tr:nth-child(odd) {
+   
+   background-color: #b8d7f2; /*#e0e9fc;*/ /*#c3c5c9;*/
+}
+
+.heading-styles {
+
+	background-color: #337ab7;
+	color: #fff;
+	text-align: center;
+}
+
+.button-submit {
+
+	margin: 10px 0px;
+	font-weight: bold;
+	font-size: 16px;
+}
+

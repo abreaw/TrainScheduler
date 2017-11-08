@@ -21,7 +21,7 @@ firebase.initializeApp(config);
 var database = firebase.database();
 
 // var to hold page load true or false
-var initialized = false;
+// var initialized = false;
 
 // dont need these ... using the first train time to calculate instead
 // Train Stations start & end times
@@ -44,17 +44,28 @@ $("#form").submit(function(e) {
 	var firstTrainInfo = $("#first-train-input").val().trim();
 	var frequencyInfo = $("#frequency-input").val().trim();
 
-	console.log(nameInfo + ", " + destInfo + ", " + firstTrainInfo + ", " + frequencyInfo);
+	if (nameInfo === "" || destInfo === "" || firstTrainInfo === "" || frequencyInfo === "") {
 
-	// adding a new train entry to the firebase database
-	database.ref('trains').push({
-        name: nameInfo,
-        destination: destInfo,
-        firstTrain: firstTrainInfo,
-        frequency: frequencyInfo,
-        dateAdded: firebase.database.ServerValue.TIMESTAMP
-    });
+		alert("Please enter information for all the fields in the Train Details form.");
+	} else {
 
+		console.log(nameInfo + ", " + destInfo + ", " + firstTrainInfo + ", " + frequencyInfo);
+
+		// adding a new train entry to the firebase database
+		database.ref('trains').push({
+	        name: nameInfo,
+	        destination: destInfo,
+	        firstTrain: firstTrainInfo,
+	        frequency: frequencyInfo,
+	        dateAdded: firebase.database.ServerValue.TIMESTAMP
+	    });
+
+	    $("#name-input").val("");
+	    $("#destination-input").val("");
+	    $("#first-train-input").val("");
+	    $("#frequency-input").val("");
+
+	}
 
 
 });
@@ -88,13 +99,13 @@ function calculateMinsAway(start, freq) {
 
 	var currentTime = moment(); // .format("HH:mm"); // military time for calculations
 	var firstTime = moment(start, "HH:mm");
-	var nextTime;
-	var trainTimes = [];
+	// var nextTime;
+	// var trainTimes = [];
 	// var iterations = parseInt(moment(currentTime).diff(start)) / parseInt(freq);
 
 	console.log("current time = ", currentTime);
 	console.log("start time = ", firstTime);
-	console.log(nextTime);
+	// console.log(nextTime);
 	// console.log(iterations);
 
 	// while ()
@@ -105,10 +116,15 @@ function calculateMinsAway(start, freq) {
 
 		// calculates how many mins between now and the start time for the train
 		var minsDiff = currentTime.diff(firstTime, 'minutes');
+		console.log("mins diff = ", minsDiff);
+		// var minsDiff = Math.abs(firstTime.diff(currentTime, 'minutes'));
+
 	} else if (firstTime.isAfter(currentTime)) {
 
 		// calculates how many mins between start time and now for the train
 		var minsDiff = firstTime.diff(currentTime, 'minutes');
+		// var minsDiff = Math.abs(currentTime.diff(firstTime, 'minutes'));
+		console.log("mins diff = ", minsDiff);
 
 	} else if (firstTime.isSame(currentTime)) {
 
@@ -119,12 +135,12 @@ function calculateMinsAway(start, freq) {
 	var numTrains = minsDiff / freq;
 	
 	// calculates how many mins until the next train??
-	var currTrainMinsAway = minsDiff % freq;  // returns the remainder after mins difference is divided by the frequency
+	var currTrainMinsAway = freq - (minsDiff % freq);  // returns the remainder after mins difference is divided by the frequency
 
-	console.log(minsDiff);
-	console.log(freq);
-	console.log(numTrains);
-	console.log("mins away", currTrainMinsAway);
+	// console.log(minsDiff);
+	// console.log(freq);
+	// console.log(numTrains);
+	// console.log("mins away", currTrainMinsAway);
 
 	return currTrainMinsAway;
 }
@@ -140,7 +156,7 @@ function calculateNextTrainTime(mins) {
 	var timeArrives = moment().add(mins, 'minutes');
 	console.log("next train time", timeArrives);
 
-	console.log(moment(timeArrives).format("hh:mm A"));
+	// console.log(moment(timeArrives).format("hh:mm A"));
 
 	var timeArrivesFormatted = moment(timeArrives).format("hh:mm A");
 
@@ -151,79 +167,76 @@ function calculateNextTrainTime(mins) {
 // ---------------------------------------------------------------------------------------------------------------
 // Populate Table on page load and when a new train is added to the firebase database
 // ---------------------------------------------------------------------------------------------------------------
-database.ref('trains').orderByChild('dateAdded').once('value', function(data) {
+// database.ref('trains').orderByChild('dateAdded').once('value', function(data) {
 	
-	console.log('ran the once')
+// 	console.log('ran the once')
 
-	// let newRow = '';
-	var newRow = '';
+// 	// let newRow = '';
+// 	var newRow = '';
 
-	console.log(data.val());
-	// get rows from firebase row entries
-	var rows = Object.values(data.val());
+// 	// console.log(data.val());
+// 	// get rows from firebase row entries
+// 	var rows = Object.values(data.val());
 
-	console.log(rows);
+// 	// console.log(rows);
 
 	
-	if (!initialized) {
-		// iterate over row entries
-		for (var row of rows) {
+// 	if (!initialized) {
+// 		// iterate over row entries
+// 		for (var row of rows) {
 
-			console.log("for loop - ", row);
+// 			console.log("for loop - ", row);
 
-			// deconstruct row properties
-			var name = row.name;
-			var destination = row.destination;
-			var firstTrain = row.firstTrain;
-			var frequency = row.frequency;
+// 			// deconstruct row properties
+// 			var name = row.name;
+// 			var destination = row.destination;
+// 			var firstTrain = row.firstTrain;
+// 			var frequency = row.frequency;
 
-			console.log(name + ", " + destination + ", " + firstTrain + ", " + frequency);
+// 			console.log(name + ", " + destination + ", " + firstTrain + ", " + frequency);
 
-			// calculate minsAway
-			var minsAway = calculateMinsAway(firstTrain, frequency); // monthsWorked * monthlyRate;
+// 			// calculate minsAway
+// 			var minsAway = calculateMinsAway(firstTrain, frequency); // monthsWorked * monthlyRate;
 
-			console.log("minsAway = ", minsAway);
+// 			console.log("minsAway = ", minsAway);
 			
-			// calculate next arrival
-			// var nextTrain = '3:45 PM'; //new Date();
-			var nextTrain = calculateNextTrainTime(minsAway);
-			// var todayDate = today.getDate();
-			// var monthsWorked = 10;
+// 			// calculate next arrival
+// 			var nextTrain = calculateNextTrainTime(minsAway);
+						
+// 			// create row and append to newRow var
+// 			newRow += createTableRow(
+// 				name,
+// 				destination,
+// 				frequency,
+// 				nextTrain,
+// 				minsAway
+// 			);
 
-			
-			// create row and append to newRow var
-			newRow += createTableRow(
-				name,
-				destination,
-				frequency,
-				nextTrain,
-				minsAway
-			);
+// 			// console.log(newRow);
 
-			console.log(newRow);
+// 		}
 
-		}
+// 		// add newRow to train list table
+// 		$('#train-list').append(newRow);
 
-		// add newRow to train list table
-		$('#train-list').append(newRow);
-	} else {
+// 	} else {
 
 
-	}
+// 	}
 
-	initialized = true;
+// 	initialized = true;
 
-});
+// });
 
 // ---------------------------------------------------------------------------------------------------------------
-// Populate new table rows on new train added
+// Populate Table on page load and when a new train is added to the firebase database
 // ---------------------------------------------------------------------------------------------------------------
 database.ref('trains').orderByChild('dateAdded').on('child_added', function(data) {
 	
 	console.log("ran the child_added function");
 
 	// add new row if page has been initialezed already
-	if (initialized) {
+	// if (initialized) {
 
 		// get new train data from firebase database
 		var name = data.val().name;
@@ -233,13 +246,13 @@ database.ref('trains').orderByChild('dateAdded').on('child_added', function(data
 
 		console.log("on child_added function call", name, destination, firstTrain, frequency);
 
-		// calculate next arrival
-		var nextTrain = '3:45 PM'; //new Date();
-		// var todayDate = today.getDate();
-		// var monthsWorked = 10;
-
 		// calculate minsAway
-		var minsAway = '30'; // monthsWorked * monthlyRate;
+		var minsAway = calculateMinsAway(firstTrain, frequency); // monthsWorked * monthlyRate;
+
+		console.log("minsAway = ", minsAway);
+		
+// 			// calculate next arrival
+		var nextTrain = calculateNextTrainTime(minsAway);
 		
 		// create row and append to newRow var
 		var newRow = createTableRow(
@@ -252,9 +265,10 @@ database.ref('trains').orderByChild('dateAdded').on('child_added', function(data
 
 		// push new row to train list table
 		$('#train-list').append(newRow)
-	} else {
+
+	// } else {
 
 		// do not reload info already on page
-		return;
-	}
+		// return;
+	// }
 })
