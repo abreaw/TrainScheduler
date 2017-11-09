@@ -52,7 +52,7 @@ $("#form").submit(function(e) {
 
 	} else {
 
-		console.log(nameInfo + ", " + destInfo + ", " + firstTrainInfo + ", " + frequencyInfo);
+		// console.log(nameInfo + ", " + destInfo + ", " + firstTrainInfo + ", " + frequencyInfo);
 
 		// adding a new train entry to the firebase database
 		database.ref('trains').push({
@@ -63,8 +63,7 @@ $("#form").submit(function(e) {
 	        dateAdded: firebase.database.ServerValue.TIMESTAMP
 	    });
 
-	    // console.log(database.ref('trains').val());
-
+	    // clear all input fields after new train details added to Firebase
 	    $("#name-input").val("");
 	    $("#destination-input").val("");
 	    $("#first-train-input").val("");
@@ -81,40 +80,11 @@ $("#form").submit(function(e) {
 // ---------------------------------------------------------------------------------------------------------------
 $(".table").on("click", ".button-delete", function() {
 
-	console.log("delete button clicked", this);
-	console.log($(this).parent());
-	console.log($(this).parent().parent());
-
 	// get the ID for the Row the Button click is in
 	var btnParentRowID = $(this).parent().parent().attr("id");
-	console.log("row ID = ", btnParentRowID);
-
-	database.ref('trains').child(btnParentRowID).remove();
-
-	console.log("db row removed now");
 	
-	// delete the row from the database
-	// var dbElement = database.ref('trains').orderByChild('dateAdded').equalTo(parseInt(btnParentRowID)); 
-
-	// console.log(dbElement);
-
-	// // perform the remove code only once 
-	// dbElement.once('value', function (snapshot) {
-		
-	// 	// grab the values from the database
-	// 	var trains = snapshot.val();
-
-	// 	console.log(snapshot.val());
-	// 	// assign the values (object) to an array
-	// 	var indexKey = Object.keys(trains);
-
-	// 	console.log(indexKey[0]);
-
-	// 	// remove the child w/ the key from the snapshot data
-	// 	database.ref('trains').child(indexKey[0]).remove();
-
-	// });
-
+	// remove the entry from Firebase w/ the key from the table row's ID attr
+	database.ref('trains').child(btnParentRowID).remove();
 
 });
 
@@ -162,9 +132,7 @@ function isFrequencyANum(freq) {
 
 	var checkFreq = isNaN(parseInt(freq));
 
-	console.log("Is frequency invalid = ", checkFreq);
 	return checkFreq;
-
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -174,56 +142,37 @@ function isFrequencyANum(freq) {
 // ---------------------------------------------------------------------------------------------------------------
 function calculateMinsAway(start, freq) {
 
-	var currentTime = moment(); // .format("HH:mm"); // military time for calculations
+	var currentTime = moment();
 	var firstTime = moment(start, "HH:mm");
-	// var firstTime = moment(start, "X");
 	
 	console.log("current time = ", currentTime);
 	console.log("start time = ", firstTime);
 	
+	// check to see if first train time before the current time
 	if (firstTime.isBefore(currentTime)) {
 
-		console.log("isBefore");
 		// calculates how many mins between now and the start time for the train
 		var minsDiff = currentTime.diff(firstTime, 'minutes');
-		console.log("mins diff = ", minsDiff);
-
+		
+		// if less than a min then the train is here
 		if (minsDiff < 1) {
 
 			return 0;
 		}
 
-		// calculates how many trains will run between now and start time
-		var numTrains = minsDiff / freq;
-		
 		// calculates how many mins until the next train??
 		var currTrainMinsAway = freq - (minsDiff % freq);  // returns the remainder after mins difference is divided by the frequency
 
 	
 	} else if (firstTime.isAfter(currentTime)) {
 
-		console.log("isAfter");
 		// calculates how many mins between start time and now for the train
 		var currTrainMinsAway = firstTime.diff(currentTime, 'minutes');
-		// console.log("mins diff = ", currTrainMinsAway);
 
 	} else if (firstTime.isSame(currentTime)) {
 
 		return 0;
 	}
-
-
-	
-	// // calculates how many trains will run between now and start time
-	// var numTrains = minsDiff / freq;
-	
-	// // calculates how many mins until the next train??
-	// var currTrainMinsAway = freq - (minsDiff % freq);  // returns the remainder after mins difference is divided by the frequency
-
-	// console.log(minsDiff);
-	// console.log(freq);
-	// console.log(numTrains);
-	// console.log("mins away", currTrainMinsAway);
 
 	return currTrainMinsAway;
 }
@@ -236,11 +185,9 @@ function calculateMinsAway(start, freq) {
 // ---------------------------------------------------------------------------------------------------------------
 function calculateNextTrainTime(mins) {
 
+	// adds the mins away to the current time to show when the next train arrives
 	var timeArrives = moment().add(mins, 'minutes');
-	// console.log("next train time", timeArrives);
-
-	// console.log(moment(timeArrives).format("hh:mm A"));
-
+	
 	var timeArrivesFormatted = moment(timeArrives).format("hh:mm A");
 
 	return timeArrivesFormatted;
@@ -250,30 +197,20 @@ function calculateNextTrainTime(mins) {
 // ---------------------------------------------------------------------------------------------------------------
 // Populate Table on page load and when a new train is added to the firebase database
 // ---------------------------------------------------------------------------------------------------------------
-// database.ref('trains').orderByChild('dateAdded').on('child_added', function(data) {
-	database.ref('trains').on('child_added', function(data, prevChildKey) {
-	
-	console.log("ran the child_added function");
-	console.log(data.val());
-	console.log(data.key);
-	// console.log(prevChildKey);
+database.ref('trains').orderByChild('dateAdded').on('child_added', function(data) {
 
 	// get new train data from firebase database
-	// var dbKey = data.val().dateAdded;
 	var dbKey = data.key;
-	console.log("dbkey = ", dbKey);
 	var name = data.val().name;
 	var destination = data.val().destination;
 	var firstTrain = data.val().firstTrain;
 	var frequency = data.val().frequency;
 
-	console.log("on child_added function call", name, destination, firstTrain, frequency);
+	// console.log("on child_added function call", name, destination, firstTrain, frequency);
 
 	// calculate minsAway
 	var minsAway = calculateMinsAway(firstTrain, frequency); // monthsWorked * monthlyRate;
 
-	console.log("minsAway = ", minsAway);
-	
 	// calculate next arrival
 	var nextTrain = calculateNextTrainTime(minsAway);
 	
@@ -287,7 +224,7 @@ function calculateNextTrainTime(mins) {
 		minsAway
 	);
 
-	// push new row to train list table
+	// add new row to train list table
 	$('#train-list').append(newRow);
 
 });
@@ -298,14 +235,10 @@ function calculateNextTrainTime(mins) {
 // ---------------------------------------------------------------------------------------------------------------
 database.ref('trains').orderByChild('dateAdded').on('child_removed', function(data) {
 	
-	console.log("ran the child_removed function");
-
 	// get new train data from firebase database
-	// var dbKey = data.val().dateAdded;
 	var dbKey = data.key;
 	
-	console.log("dbkey = ", dbKey);
-
+	// delete the row from the web page table (user's view)
 	$("#"+dbKey).remove();
 	
 });
