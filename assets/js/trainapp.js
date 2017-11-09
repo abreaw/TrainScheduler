@@ -176,32 +176,49 @@ function calculateMinsAway(start, freq) {
 
 	var currentTime = moment(); // .format("HH:mm"); // military time for calculations
 	var firstTime = moment(start, "HH:mm");
+	// var firstTime = moment(start, "X");
 	
-	// console.log("current time = ", currentTime);
-	// console.log("start time = ", firstTime);
+	console.log("current time = ", currentTime);
+	console.log("start time = ", firstTime);
 	
 	if (firstTime.isBefore(currentTime)) {
 
+		console.log("isBefore");
 		// calculates how many mins between now and the start time for the train
 		var minsDiff = currentTime.diff(firstTime, 'minutes');
-		// console.log("mins diff = ", minsDiff);
+		console.log("mins diff = ", minsDiff);
+
+		if (minsDiff < 1) {
+
+			return 0;
+		}
+
+		// calculates how many trains will run between now and start time
+		var numTrains = minsDiff / freq;
+		
+		// calculates how many mins until the next train??
+		var currTrainMinsAway = freq - (minsDiff % freq);  // returns the remainder after mins difference is divided by the frequency
+
 	
 	} else if (firstTime.isAfter(currentTime)) {
 
+		console.log("isAfter");
 		// calculates how many mins between start time and now for the train
-		var minsDiff = firstTime.diff(currentTime, 'minutes');
-		// console.log("mins diff = ", minsDiff);
+		var currTrainMinsAway = firstTime.diff(currentTime, 'minutes');
+		// console.log("mins diff = ", currTrainMinsAway);
 
 	} else if (firstTime.isSame(currentTime)) {
 
 		return 0;
 	}
+
+
 	
-	// calculates how many trains will run between now and start time
-	var numTrains = minsDiff / freq;
+	// // calculates how many trains will run between now and start time
+	// var numTrains = minsDiff / freq;
 	
-	// calculates how many mins until the next train??
-	var currTrainMinsAway = freq - (minsDiff % freq);  // returns the remainder after mins difference is divided by the frequency
+	// // calculates how many mins until the next train??
+	// var currTrainMinsAway = freq - (minsDiff % freq);  // returns the remainder after mins difference is divided by the frequency
 
 	// console.log(minsDiff);
 	// console.log(freq);
