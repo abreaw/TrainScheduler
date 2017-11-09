@@ -63,6 +63,8 @@ $("#form").submit(function(e) {
 	        dateAdded: firebase.database.ServerValue.TIMESTAMP
 	    });
 
+	    // console.log(database.ref('trains').val());
+
 	    $("#name-input").val("");
 	    $("#destination-input").val("");
 	    $("#first-train-input").val("");
@@ -80,28 +82,39 @@ $("#form").submit(function(e) {
 $(".table").on("click", ".button-delete", function() {
 
 	console.log("delete button clicked", this);
+	console.log($(this).parent());
+	console.log($(this).parent().parent());
 
 	// get the ID for the Row the Button click is in
-	var btnParentRowID = $(".button-delete").parent().parent().attr("id");
+	var btnParentRowID = $(this).parent().parent().attr("id");
+	console.log("row ID = ", btnParentRowID);
+
+	database.ref('trains').child(btnParentRowID).remove();
+
+	console.log("db row removed now");
 	
 	// delete the row from the database
-	var dbElement = database.ref('trains').orderByChild('dateAdded').equalTo(parseInt(btnParentRowID)); 
+	// var dbElement = database.ref('trains').orderByChild('dateAdded').equalTo(parseInt(btnParentRowID)); 
 
-	// perform the remove code only once 
-	dbElement.once('value', function (snapshot) {
+	// console.log(dbElement);
+
+	// // perform the remove code only once 
+	// dbElement.once('value', function (snapshot) {
 		
-		// grab the values from the database
-		var trains = snapshot.val();
-		// assign the values (object) to an array
-		var indexKey = Object.keys(trains);
+	// 	// grab the values from the database
+	// 	var trains = snapshot.val();
 
-		// remove the child w/ the key from the snapshot data
-		database.ref('trains').child(indexKey[0]).remove();
-	});
+	// 	console.log(snapshot.val());
+	// 	// assign the values (object) to an array
+	// 	var indexKey = Object.keys(trains);
 
-	
-	// delete the row from the table
-	$("#"+btnParentRowID).remove();
+	// 	console.log(indexKey[0]);
+
+	// 	// remove the child w/ the key from the snapshot data
+	// 	database.ref('trains').child(indexKey[0]).remove();
+
+	// });
+
 
 });
 
@@ -220,12 +233,17 @@ function calculateNextTrainTime(mins) {
 // ---------------------------------------------------------------------------------------------------------------
 // Populate Table on page load and when a new train is added to the firebase database
 // ---------------------------------------------------------------------------------------------------------------
-database.ref('trains').orderByChild('dateAdded').on('child_added', function(data) {
+// database.ref('trains').orderByChild('dateAdded').on('child_added', function(data) {
+	database.ref('trains').on('child_added', function(data, prevChildKey) {
 	
 	console.log("ran the child_added function");
+	console.log(data.val());
+	console.log(data.key);
+	// console.log(prevChildKey);
 
 	// get new train data from firebase database
-	var dbKey = data.val().dateAdded;
+	// var dbKey = data.val().dateAdded;
+	var dbKey = data.key;
 	console.log("dbkey = ", dbKey);
 	var name = data.val().name;
 	var destination = data.val().destination;
@@ -250,9 +268,27 @@ database.ref('trains').orderByChild('dateAdded').on('child_added', function(data
 		frequency,
 		nextTrain,
 		minsAway
-	)
+	);
 
 	// push new row to train list table
-	$('#train-list').append(newRow)
+	$('#train-list').append(newRow);
 
-})
+});
+
+
+// ---------------------------------------------------------------------------------------------------------------
+// Delete row from table when a train is deleted from the firebase database
+// ---------------------------------------------------------------------------------------------------------------
+database.ref('trains').orderByChild('dateAdded').on('child_removed', function(data) {
+	
+	console.log("ran the child_removed function");
+
+	// get new train data from firebase database
+	// var dbKey = data.val().dateAdded;
+	var dbKey = data.key;
+	
+	console.log("dbkey = ", dbKey);
+
+	$("#"+dbKey).remove();
+	
+});
