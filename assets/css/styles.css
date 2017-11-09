@@ -38,3 +38,10 @@ label {
 	font-size: 16px;
 }
 
+.button-delete {
+
+	background-color: #e0e9fc;
+	margin: 5px;
+	font-size: 12px;
+}
+

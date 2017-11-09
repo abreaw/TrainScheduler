@@ -73,22 +73,56 @@ $("#form").submit(function(e) {
 
 });
 
+
+// ---------------------------------------------------------------------------------------------------------------
+// On "Delete" button click process
+// ---------------------------------------------------------------------------------------------------------------
+$(".table").on("click", ".button-delete", function() {
+
+	console.log("delete button clicked", this);
+
+	// get the ID for the Row the Button click is in
+	var btnParentRowID = $(".button-delete").parent().parent().attr("id");
+	
+	// delete the row from the database
+	var dbElement = database.ref('trains').orderByChild('dateAdded').equalTo(parseInt(btnParentRowID)); 
+
+	// perform the remove code only once 
+	dbElement.once('value', function (snapshot) {
+		
+		// grab the values from the database
+		var trains = snapshot.val();
+		// assign the values (object) to an array
+		var indexKey = Object.keys(trains);
+
+		// remove the child w/ the key from the snapshot data
+		database.ref('trains').child(indexKey[0]).remove();
+	});
+
+	
+	// delete the row from the table
+	$("#"+btnParentRowID).remove();
+
+});
+
+
 // ---------------------------------------------------------------------------------------------------------------
 // Create & Format table row data
 // arguments: train name, train destination, how often the train comes, when the next train is due, how many
 //		minutes away the train is from now
 // returns: html setup of the new table row with the table data passed in the arugments section
 // ---------------------------------------------------------------------------------------------------------------
-function createTableRow(name, dest, frequency, nextTrain, minsAway) {
+function createTableRow(id, name, dest, frequency, nextTrain, minsAway) {
 
 	// use ` instead of ' or " to be able to add the variable names into the string and it interpret them for the values passed in
 	return `
-		<tr>
+		<tr id='${id}'>
 			<td>${name}</td>
 			<td>${dest}</td>
 			<td>${frequency}</td>
 			<td>${nextTrain}</td>
 			<td>${minsAway}</td>
+			<td><button type="button" class="btn button-delete">X</button>
 		</tr>
 	`;
 }
@@ -130,20 +164,20 @@ function calculateMinsAway(start, freq) {
 	var currentTime = moment(); // .format("HH:mm"); // military time for calculations
 	var firstTime = moment(start, "HH:mm");
 	
-	console.log("current time = ", currentTime);
-	console.log("start time = ", firstTime);
+	// console.log("current time = ", currentTime);
+	// console.log("start time = ", firstTime);
 	
 	if (firstTime.isBefore(currentTime)) {
 
 		// calculates how many mins between now and the start time for the train
 		var minsDiff = currentTime.diff(firstTime, 'minutes');
-		console.log("mins diff = ", minsDiff);
+		// console.log("mins diff = ", minsDiff);
 	
 	} else if (firstTime.isAfter(currentTime)) {
 
 		// calculates how many mins between start time and now for the train
 		var minsDiff = firstTime.diff(currentTime, 'minutes');
-		console.log("mins diff = ", minsDiff);
+		// console.log("mins diff = ", minsDiff);
 
 	} else if (firstTime.isSame(currentTime)) {
 
@@ -173,7 +207,7 @@ function calculateMinsAway(start, freq) {
 function calculateNextTrainTime(mins) {
 
 	var timeArrives = moment().add(mins, 'minutes');
-	console.log("next train time", timeArrives);
+	// console.log("next train time", timeArrives);
 
 	// console.log(moment(timeArrives).format("hh:mm A"));
 
@@ -191,6 +225,8 @@ database.ref('trains').orderByChild('dateAdded').on('child_added', function(data
 	console.log("ran the child_added function");
 
 	// get new train data from firebase database
+	var dbKey = data.val().dateAdded;
+	console.log("dbkey = ", dbKey);
 	var name = data.val().name;
 	var destination = data.val().destination;
 	var firstTrain = data.val().firstTrain;
@@ -208,6 +244,7 @@ database.ref('trains').orderByChild('dateAdded').on('child_added', function(data
 	
 	// create row and append to newRow var
 	var newRow = createTableRow(
+		dbKey,
 		name,
 		destination,
 		frequency,
